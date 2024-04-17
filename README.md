@@ -1,13 +1,15 @@
 # CCIPRewriter.sol
 
-Inline CCIP-Read endpoint replacement resolver.
+Inline CCIP-Read endpoint-rewriter resolver.
 
 * [**CCIPRewriter.sol**](./src/CCIPRewriter.sol)
-	* [`sepolia:0x006e8dDA8E78d1A7b526938D7ba3FDB808bb8F19`](https://sepolia.etherscan.io/address/0x006e8dDA8E78d1A7b526938D7ba3FDB808bb8F19)
+	* Deployment: [`sepolia:0x1df9F28B707bfF8FD27EF96c48cc59703401Ae7F`](https://sepolia.etherscan.io/address/0x1df9F28B707bfF8FD27EF96c48cc59703401Ae7F)
+	* [Rewriter Tool](https://adraffy.github.io/CCIPRewriter.sol/test/)
 
 ### Example
 
-
+* [`coinbase.debug.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html?sepolia#coinbase.debug.eth)
+* [`coinbase.debug.eth.[https://raffy.xyz/tog/fixed/s2].rewrite.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html?sepolia#coinbase.debug.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc64zs.rewriter.eth)
 
 ### Test
 
