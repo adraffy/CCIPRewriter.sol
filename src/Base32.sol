@@ -24,9 +24,9 @@ library Base32 {
 					clip <<= 8;
 					ammo -= 1;
 					word = (word << 5) | x;
+					bits += 5;
 				}
 				v[i] = bytes1(uint8(word >> (bits -= 8)));
-				break;
 			}
 			return (true, v);
 		}
@@ -34,7 +34,7 @@ library Base32 {
 
 	// "abcdefghijklmnopqrstuvwxyz234567";
 	function _indexOf(uint256 x) internal pure returns (uint256) {
-		if (x >= 97 && x <= 112) {
+		if (x >= 97 && x <= 122) {
 			return x - 97;
 		} else if (x >= 50 && x <= 55) {
 			return x - 24; // 50-26
