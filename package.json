@@ -1,10 +1,10 @@
 {
 	"type": "module",
 	"scripts": {
-		"test": "node test/test.js"
+		"test": "node test/test-all.js"
 	},
 	"dependencies": {
-		"@adraffy/blocksmith": "^0.0.13",
+		"@adraffy/blocksmith": "^0.0.14",
 		"@adraffy/cid": "^0.0.6",
 		"@resolverworks/ezccip": "^0.0.9",
 		"ethers": "^6.11.1"

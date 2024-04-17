@@ -15,8 +15,6 @@ import {BytesUtils} from "@ensdomains/ens-contracts/contracts/wrapper/BytesUtils
 // https://eips.ethereum.org/EIPS/eip-3668
 error OffchainLookup(address from, string[] urls, bytes request, bytes4 callback, bytes carry);
 
-import "forge-std/console2.sol";
-
 contract CCIPRewriter is IERC165, IExtendedResolver {
 	using BytesUtils for bytes;
 
@@ -76,7 +74,7 @@ contract CCIPRewriter is IERC165, IExtendedResolver {
 		(address sender, bytes4 callback, bytes memory carry) = abi.decode(extra, (address, bytes4, bytes));
 		(bool ok, bytes memory v) = sender.staticcall(abi.encodeWithSelector(callback, response, carry));
 		if (!ok) assembly { revert(add(v, 32), mload(v)) }
-		return v;
+		assembly { return(add(v, 32), mload(v)) }
 	}
 
 	function _findSelf(bytes memory name) internal view returns (bytes32 node, uint256 offset, uint256 size) {

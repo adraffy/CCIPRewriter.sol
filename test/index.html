@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rewriter</title>
+<style>
+body {
+	margin: 3rem;
+	background: #eee;
+}
+main {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+label {
+	display: block;
+	margin-bottom: 4px;
+}
+input {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px;
+	font-size: 20px;	
+}
+#actions {
+	display: flex;
+	justify-content: end;
+}
+#resolve_btn {
+	padding: 8px;
+	font-size: 100%;
+	cursor: pointer;
+}
+footer {
+	text-align: center;
+	color: #666;
+	margin: 16px;
+}
+@media only screen and (max-width: 800px) { 
+	body {
+		margin: 1rem;
+	}
+}
+</style>
+</head>
+<body>
+<main>
+<div>
+	<label for="name_field">Name</label>
+	<input id="name_field" value="raffy.eth">
+</div>
+<div>
+	<label for="url_field">Replacement Endpoint</label>
+	<input id="url_field" value="http://localhost:8000">
+</div>
+<div>
+	<label for="url_field">Transformed Name</label>
+	<input id="output_field" readonly>
+</div>
+<div id="actions">
+	<button id="resolve_btn">Resolve</button>
+</div>
+</main>
+<footer>
+	<span>Created by <a href="https://x.com/adraffy">raffy.eth</a></span>
+</footer>
+<script type="module">
+import {ens_normalize} from '../../ens-normalize.js/dist/index.min.js';
+import {Base32} from '../../cid.js/dist/index.min.js';
+
+const name_field = document.querySelector('#name_field');
+const url_field = document.querySelector('#url_field');
+const output_field = document.querySelector('#output_field');
+const resolve_btn = document.querySelector('#resolve_btn');
+
+update();
+name_field.addEventListener('input', update);
+url_field.addEventListener('input', update)
+
+resolve_btn.addEventListener('click', () => {
+	let a = document.createElement('a');
+	a.target = '_blank';
+	a.href = `../../ens-normalize.js/test/resolver.html?sepolia#${output_field.value}`;	
+	a.click();
+});
+
+function update() {
+	try {
+		let name = ens_normalize(name_field.value.trim());
+		let url = Base32.encode(new TextEncoder().encode(new URL(url_field.value)));
+		let base = 'rewriter.eth';
+		output_field.value = `${name}.${url}.${base}`;
+		output_field.placeholder = '';
+		resolve_btn.disabled = false;
+	} catch (err) {
+		output_field.value = '';
+		output_field.placeholder = `❌️ ${err.message}`;
+		resolve_btn.disabled = true;
+	}
+}
+
+</script>
+</body>
+</html>

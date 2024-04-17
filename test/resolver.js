@@ -1,10 +1,9 @@
-import {Foundry, Resolver, Node} from '../../blocksmith.js/src/index.js'; //'@adraffy/blocksmith';
+import {Foundry, Resolver, Node} from '@adraffy/blocksmith';
 import {Base32} from '@adraffy/cid';
 import {serve} from '@resolverworks/ezccip';
 import {ethers} from 'ethers';
 import {test, after} from 'node:test';
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
 
 test('resolver', async T => {
 
@@ -53,7 +52,7 @@ test('resolver', async T => {
 				revert OffchainLookup(address(this), urls, request, this.resolveCallback.selector, '');
 			}
 			function resolveCallback(bytes memory response, bytes memory) external view returns (bytes memory) {
-				return abi.decode(response, (bytes));
+				return response;
 			}
 		}
 	`});
@@ -77,14 +76,17 @@ test('resolver', async T => {
 		return root.create(`${node.name}.${Base32.encode(ethers.toUtf8Bytes(ccip.endpoint))}.${rewriter.name}`);
 	}
 
-	// resolve name and confirm that it fails
+	// resolve broken and confirm that it fails
 	await T.test(`broken: direct`, () => assert.rejects(() => Resolver.get(ens, broken).then(r => r.text('name'))));
-
-	// resolve name via rewriter lens and confirm that it works
+	
+	// resolve broken with rewriter and confirm that it works
 	let re_broken = rewrite(broken);
 	await T.test(`broken: ${re_broken.name}`, async () => assert.equal(await Resolver.get(ens, re_broken).then(r => r.text('name')), record.text()));
 
+	// resolve normal
 	await T.test('normal: direct', async () => assert.equal(await Resolver.get(ens, normal).then(r => r.text('name')), NORMAL));
+
+	// resolve normal with rewriter and confirm unaffected
 	let re_normal = rewrite(normal);
 	await T.test(`normal: ${re_normal.name}`, async () => assert.equal(await Resolver.get(ens, re_normal).then(r => r.text('name')), NORMAL));
 
