@@ -3,13 +3,16 @@
 Inline CCIP-Read endpoint-rewriter resolver.
 
 * [**CCIPRewriter.sol**](./src/CCIPRewriter.sol)
-	* Deployment: [`sepolia:0x1df9F28B707bfF8FD27EF96c48cc59703401Ae7F`](https://sepolia.etherscan.io/address/0x1df9F28B707bfF8FD27EF96c48cc59703401Ae7F)
-	* [Rewriter Tool](https://adraffy.github.io/CCIPRewriter.sol/test/)
+	* Deployments: `ccipr.eth`
+		* [`mainnet:0x0B03f37f7671825A90Aa2bdE4C00D0559EcBD12C`](https://etherscan.io/address/0x0B03f37f7671825A90Aa2bdE4C00D0559EcBD12C)
+		* [`sepolia:0x4434c3F63aCbd9Fe0a108323d5D172e4f7D736d0`](https://sepolia.etherscan.io/address/0x4434c3F63aCbd9Fe0a108323d5D172e4f7D736d0)
+	* [**Rewriter Tool**](https://adraffy.github.io/CCIPRewriter.sol/test/) ⭐
 
 ### Example
 
-* [`coinbase.debug.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html?sepolia#coinbase.debug.eth)
-* [`coinbase.debug.eth.[https://raffy.xyz/tog/fixed/s2].rewrite.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html?sepolia#coinbase.debug.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc64zs.rewriter.eth)
+* [`eth.coinbase.tog.raffy.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#eth.coinbase.tog.raffy.eth)
+* Rewritten: [`eth.coinbase.tog.raffy.eth.[https://raffy.xyz/tog/fixed/e1].ccipr.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#coinbase.tog.raffy.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth)
+* Unaffected: [`nick.eth.[https://raffy.xyz/tog/fixed/e1].ccipr.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#nick.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth)
 
 ### Test
 

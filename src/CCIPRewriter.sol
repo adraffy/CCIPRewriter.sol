@@ -39,7 +39,8 @@ contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 	function resolve(bytes memory name, bytes memory data) external view returns (bytes memory v) {
 		unchecked {
 			(, uint256 offset, uint256 size) = _findSelf(name);
-			offset -= size;	
+			if (offset == 0 || size == 0) return new bytes(64);
+			offset -= size;
 			uint256 name_ptr;
 			assembly { name_ptr := add(add(name, 32), offset) }
 			(bool valid, bytes memory url) = Base32.decode(name_ptr, size);
@@ -51,13 +52,15 @@ contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 				mstore(name, offset) // truncate
 			}
 			(, address resolver, bool wild, ) = _findResolver(name);
-			if (resolver == address(0)) return '';
+			if (resolver == address(0)) return new bytes(64);
 			bytes32 node = name.namehash(0);
 			assembly { mstore(add(data, 36), node) } // rewrite the target
 			bool ok;
 			if (wild) {
 				(ok, v) = resolver.staticcall(abi.encodeCall(IExtendedResolver.resolve, (name, data)));
-				if (!ok) {
+				if (ok) {
+					v = abi.decode(v, (bytes));
+				} else {
 					if (bytes4(v) != OffchainLookup.selector) assembly { revert(add(v, 32), mload(v)) }
 					assembly {
 						mstore(add(v, 4), sub(mload(v), 4)) 
@@ -99,7 +102,7 @@ contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 				if (resolver != address(0)) break;
 				offset += 1 + uint256(uint8(name[offset]));
 			}
-			try IERC165(resolver).supportsInterface(type(IExtendedResolver).interfaceId) returns (bool quacks) {
+ 			try IERC165(resolver).supportsInterface{gas: 30000}(type(IExtendedResolver).interfaceId) returns (bool quacks) {
 				wild = quacks;
 			} catch {
 			}

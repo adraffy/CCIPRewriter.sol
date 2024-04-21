@@ -82,7 +82,7 @@ url_field.addEventListener('input', update)
 resolve_btn.addEventListener('click', () => {
 	let a = document.createElement('a');
 	a.target = '_blank';
-	a.href = `../../ens-normalize.js/test/resolver.html?sepolia#${output_field.value}`;	
+	a.href = `../../ens-normalize.js/test/resolver.html#${output_field.value}`;	
 	a.click();
 });
 
@@ -90,7 +90,7 @@ function update() {
 	try {
 		let name = ens_normalize(name_field.value.trim());
 		let url = Base32.encode(new TextEncoder().encode(new URL(url_field.value)));
-		let base = 'rewriter.eth';
+		let base = 'ccipr.eth';
 		output_field.value = `${name}.${url}.${base}`;
 		output_field.placeholder = '';
 		resolve_btn.disabled = false;
