@@ -12,17 +12,20 @@ import {IMulticallable} from "@ensdomains/ens-contracts/contracts/resolvers/IMul
 import {Base32} from "./Base32.sol";
 import {BytesUtils} from "@ensdomains/ens-contracts/contracts/wrapper/BytesUtils.sol";
 
+// bases
+import {ReverseClaimer} from "@ensdomains/ens-contracts/contracts/reverseRegistrar/ReverseClaimer.sol";
+
 // https://eips.ethereum.org/EIPS/eip-3668
 error OffchainLookup(address from, string[] urls, bytes request, bytes4 callback, bytes carry);
 
-contract CCIPRewriter is IERC165, IExtendedResolver {
+contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 	using BytesUtils for bytes;
 
 	error Unreachable(bytes name); 
 	error InvalidBase32(bytes name);
 	
 	ENS immutable ens;
-	constructor(ENS _ens) {
+	constructor(ENS _ens) ReverseClaimer(_ens, msg.sender) {
 		ens = _ens;
 	}
  

@@ -21,6 +21,11 @@ test('resolver', async T => {
 		}
 	});
 
+	// setup reverse
+	let reverse_registrar = await foundry.deploy({import: '@ensdomains/ens-contracts/contracts/reverseRegistrar/ReverseRegistrar.sol', args: [ens]});
+	let reverse = await ens.$register(root.create('reverse'));
+	await ens.$register(reverse.create('addr'), {owner: reverse_registrar});
+
 	// create a normal resolver
 	const NORMAL = 'Chonker';
 	let normal_resolver = await foundry.deploy({sol: `
