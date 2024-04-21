@@ -12,7 +12,7 @@ Inline CCIP-Read endpoint-rewriter resolver.
 
 * [`eth.coinbase.tog.raffy.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#eth.coinbase.tog.raffy.eth)
 * Rewritten: [`eth.coinbase.tog.raffy.eth.[https://raffy.xyz/tog/fixed/e1].ccipr.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#coinbase.tog.raffy.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth)
-* Unaffected: [`nick.eth.[https://raffy.xyz/tog/fixed/e1].ccipr.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#nick.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth)
+* Uneffected: [`nick.eth.[https://raffy.xyz/tog/fixed/e1].ccipr.eth`](https://adraffy.github.io/ens-normalize.js/test/resolver.html#nick.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth)
 
 ### Test
 
