@@ -2,12 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Rewriter</title>
+<title>CCIPRewriter Tool</title>
 <style>
+.hide { display: none !important; }
 body {
 	margin: 3rem;
 	background: #eee;
 }
+header {
+	display: flex;
+	justify-content: space-between;
+}
+h1 {
+	display: flex;
+	align-items: baseline;
+	gap: 16px;
+}
+#format {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: 4px;	
+	font: bold 18px monospace;
+}
+#format .part {
+	padding: 8px;
+	background-color: #fff;
+	border: 2px solid #ccc;
+	border-radius: 8px;
+}
+#format .part.url { color: #00f; }
+#format .part.base { color: #666; }
 main {
 	display: flex;
 	flex-direction: column;
@@ -22,13 +47,20 @@ input {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 8px;
-	font-size: 20px;	
+	font-size: 20px;
 }
 #actions {
 	display: flex;
-	justify-content: end;
+	gap: 16px;
+	align-items: center;
+}
+#error {
+	display: flex;
+	background-color: #fcc;
+	padding: 8px;
 }
 #resolve_btn {
+	margin-left: auto;
 	padding: 8px;
 	font-size: 100%;
 	cursor: pointer;
@@ -46,20 +78,39 @@ footer {
 </style>
 </head>
 <body>
+<header>
+	<h1><a href="https://github.com/adraffy/CCIPRewriter.sol/blob/main/src/CCIPRewriter.sol">CCIPRewriter.sol</a></h1>
+	<a href="https://github.com/adraffy/CCIPRewriter.sol">adraffy/CCIPRewriter.sol</a>
+</header>
+<!-- <div id="examples">
+	
+</div> -->
+<div id="format">
+	<span class="part name">name</span>
+	.
+	<span class="part url">base32(url)</span> 
+	.
+	<span class="part base">ccipr.eth</span>
+</div>
 <main>
 <div>
 	<label for="name_field">Name</label>
-	<input id="name_field" value="raffy.eth">
+	<input id="name_field" placeholder="raffy.eth">
 </div>
 <div>
 	<label for="url_field">Replacement Endpoint</label>
-	<input id="url_field" value="http://localhost:8000">
+	<input id="url_field" placeholder="http://localhost:8000">
 </div>
 <div>
-	<label for="url_field">Transformed Name</label>
-	<input id="output_field" readonly>
+	<label for="base_field">Basename</label>
+	<input id="base_field" placeholder="ccipr.eth">
+</div>
+<div>
+	<label for="output_field">Rewritten Name</label>
+	<input id="output_field">
 </div>
 <div id="actions">
+	<div id="error" class="hide">Chonk</div>
 	<button id="resolve_btn">Resolve</button>
 </div>
 </main>
@@ -71,13 +122,16 @@ import {ens_normalize} from '../../ens-normalize.js/dist/index.min.js';
 import {Base32} from '../../cid.js/dist/index.min.js';
 
 const name_field = document.querySelector('#name_field');
+const base_field = document.querySelector('#base_field');
 const url_field = document.querySelector('#url_field');
 const output_field = document.querySelector('#output_field');
 const resolve_btn = document.querySelector('#resolve_btn');
+const error_div = document.querySelector('#error');
 
-update();
 name_field.addEventListener('input', update);
 url_field.addEventListener('input', update)
+output_field.addEventListener('input', parse);
+parse();
 
 resolve_btn.addEventListener('click', () => {
 	let a = document.createElement('a');
@@ -86,18 +140,51 @@ resolve_btn.addEventListener('click', () => {
 	a.click();
 });
 
+function set_error(s) {
+	error_div.classList.toggle('hide', !s);
+	if (s) error_div.innerHTML = `❌️ ${s}`;
+	resolve_btn.disabled = !!s;
+}
+
 function update() {
 	try {
 		let name = ens_normalize(name_field.value.trim());
+		let base = ens_normalize(base_field.value.trim());
 		let url = Base32.encode(new TextEncoder().encode(new URL(url_field.value)));
-		let base = 'ccipr.eth';
 		output_field.value = `${name}.${url}.${base}`;
-		output_field.placeholder = '';
-		resolve_btn.disabled = false;
+		set_error();
 	} catch (err) {
-		output_field.value = '';
-		output_field.placeholder = `❌️ ${err.message}`;
-		resolve_btn.disabled = true;
+		output_field.value = ' ';
+		set_error(err.message);
+	}
+}
+
+function parse() {
+	try {
+		let output = ens_normalize(output_field.value.trim());
+		if (!output) {
+			set_error();
+			return;
+		}
+		let v = output.split('.');
+		let i = v.length - 2;
+		let url;
+		while (i > 0) {
+			try {
+				url = new URL(new TextDecoder().decode(Base32.decode(v[--i])));
+				break;
+			} catch (err) {
+				console.log(err);
+			}
+		}
+		if (!url) throw new Error('unable to detect base32 component');
+		name_field.value = v.slice(0, i).join('.');
+		base_field.value = v.slice(i + 1).join('.');
+		url_field.value = url;
+		set_error();
+	} catch (err) {
+		set_error(err.message);
+		console.log(err);
 	}
 }
 
