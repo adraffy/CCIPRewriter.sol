@@ -136,6 +136,10 @@ const error_div = document.querySelector('#error');
 name_field.addEventListener('input', update);
 url_field.addEventListener('input', update)
 output_field.addEventListener('input', parse);
+
+if (!output_field.value) {
+	output_field.value = `${name_field.placeholder}.${encode(url_field.placeholder)}.${base_field.placeholder}`;
+}
 parse();
 
 resolve_btn.addEventListener('click', () => {
@@ -151,11 +155,15 @@ function set_error(s) {
 	resolve_btn.disabled = !!s;
 }
 
+function encode(s) {
+	return Base32.encode(new TextEncoder().encode(new URL(s)));
+}
+
 function update() {
 	try {
 		let name = ens_normalize(name_field.value.trim());
 		let base = ens_normalize(base_field.value.trim());
-		let url = Base32.encode(new TextEncoder().encode(new URL(url_field.value)));
+		let url = encode(url_field.value);
 		output_field.value = `${name}.${url}.${base}`;
 		set_error();
 	} catch (err) {
