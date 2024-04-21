@@ -15,10 +15,12 @@ header {
 }
 h1 {
 	display: flex;
+	margin: 0;
 	align-items: baseline;
 	gap: 16px;
 }
 #format {
+	margin-top: 16px;
 	display: flex;
 	align-items: baseline;
 	justify-content: center;
@@ -48,6 +50,9 @@ input {
 	box-sizing: border-box;
 	padding: 8px;
 	font-size: 20px;
+}
+input.big {
+	font-size: 200%;
 }
 #actions {
 	display: flex;
@@ -95,7 +100,7 @@ footer {
 <main>
 <div>
 	<label for="name_field">Name</label>
-	<input id="name_field" placeholder="raffy.eth">
+	<input id="name_field" class="big" placeholder="raffy.eth">
 </div>
 <div>
 	<label for="url_field">Replacement Endpoint</label>
@@ -103,7 +108,7 @@ footer {
 </div>
 <div>
 	<label for="base_field">Basename</label>
-	<input id="base_field" placeholder="ccipr.eth">
+	<input id="base_field" class="big" placeholder="ccipr.eth">
 </div>
 <div>
 	<label for="output_field">Rewritten Name</label>
@@ -174,7 +179,6 @@ function parse() {
 				url = new URL(new TextDecoder().decode(Base32.decode(v[--i])));
 				break;
 			} catch (err) {
-				console.log(err);
 			}
 		}
 		if (!url) throw new Error('unable to detect base32 component');
@@ -183,8 +187,10 @@ function parse() {
 		url_field.value = url;
 		set_error();
 	} catch (err) {
+		name_field.value = ' ';
+		base_field.value = ' ';
+		url_field.value = ' ';
 		set_error(err.message);
-		console.log(err);
 	}
 }
 
