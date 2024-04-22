@@ -9,6 +9,10 @@ body {
 	margin: 3rem;
 	background: #eee;
 }
+button {	
+	cursor: pointer;
+	padding: 4px 8px;
+}
 header {
 	display: flex;
 	justify-content: space-between;
@@ -18,6 +22,12 @@ h1 {
 	margin: 0;
 	align-items: baseline;
 	gap: 16px;
+}
+#examples {
+	margin-top: 16px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 #format {
 	margin-top: 16px;
@@ -42,7 +52,11 @@ main {
 }
 label {
 	display: block;
-	margin-bottom: 4px;
+	margin-bottom: 8px;
+}
+label i {
+	float: right;
+	opacity: .7;
 }
 input {
 	display: block;
@@ -59,16 +73,20 @@ input.big {
 	gap: 16px;
 	align-items: center;
 }
+#actions button {
+	padding: 8px;
+	font-size: 100%;
+}
+#resolve0_btn {
+	margin-left: auto;
+}
+#resolve_btn {
+	font-weight: bold;
+}
 #error {
 	display: flex;
 	background-color: #fcc;
 	padding: 8px;
-}
-#resolve_btn {
-	margin-left: auto;
-	padding: 8px;
-	font-size: 100%;
-	cursor: pointer;
 }
 footer {
 	text-align: center;
@@ -84,12 +102,14 @@ footer {
 </head>
 <body>
 <header>
-	<h1><a href="https://github.com/adraffy/CCIPRewriter.sol/blob/main/src/CCIPRewriter.sol">CCIPRewriter.sol</a></h1>
+	<h1><a href="https://github.com/adraffy/CCIPRewriter.sol/blob/main/src/CCIPRewriter.sol" target="_blank">CCIPRewriter.sol</a></h1>
 	<a href="https://github.com/adraffy/CCIPRewriter.sol">adraffy/CCIPRewriter.sol</a>
 </header>
-<!-- <div id="examples">
-	
-</div> -->
+<div id="examples">
+	<b>Examples:</b>
+	<button data-rw="coinbase.tog.raffy.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth">coinbase.tog.raffy.eth (Rewrite to /fixed)</button>
+	<button data-rw="nick.eth.nb2hi4dthixs64tbmzthsltypf5c65dpm4xwm2lymvsc6zjr.ccipr.eth">nick.eth (Uneffected)</button>
+</div>
 <div id="format">
 	<span class="part name">name</span>
 	.
@@ -111,11 +131,12 @@ footer {
 	<input id="base_field" class="big" placeholder="ccipr.eth">
 </div>
 <div>
-	<label for="output_field">Rewritten Name</label>
+	<label for="output_field">Rewritten Name<i>Input name to parse into components.</i></label>
 	<input id="output_field">
 </div>
 <div id="actions">
 	<div id="error" class="hide">Chonk</div>
+	<button id="resolve0_btn">Resolve Original</button>
 	<button id="resolve_btn">Resolve</button>
 </div>
 </main>
@@ -131,9 +152,18 @@ const base_field = document.querySelector('#base_field');
 const url_field = document.querySelector('#url_field');
 const output_field = document.querySelector('#output_field');
 const resolve_btn = document.querySelector('#resolve_btn');
+const resolve0_btn = document.querySelector('#resolve0_btn');
 const error_div = document.querySelector('#error');
 
+for (let btn of document.querySelectorAll('#examples button[data-rw]')) {
+	btn.addEventListener('click', () => {
+		output_field.value = btn.dataset.rw;
+		parse();
+	});
+}
+
 name_field.addEventListener('input', update);
+base_field.addEventListener('input', update);
 url_field.addEventListener('input', update)
 output_field.addEventListener('input', parse);
 
@@ -148,6 +178,13 @@ resolve_btn.addEventListener('click', () => {
 	a.href = `../../ens-normalize.js/test/resolver.html#${output_field.value}`;	
 	a.click();
 });
+resolve0_btn.addEventListener('click', () => {
+	let a = document.createElement('a');
+	a.target = '_blank';
+	a.href = `../../ens-normalize.js/test/resolver.html#${name_field.value}`;	
+	a.click();
+});
+
 
 function set_error(s) {
 	error_div.classList.toggle('hide', !s);
@@ -176,6 +213,9 @@ function parse() {
 	try {
 		let output = ens_normalize(output_field.value.trim());
 		if (!output) {
+			name_field.value = '';
+			base_field.value = '';
+			url_field.value = '';
 			set_error();
 			return;
 		}
