@@ -185,7 +185,11 @@ resolve0_btn.addEventListener('click', () => {
 	a.click();
 });
 
-
+function set_components(s) {
+	name_field.value = s;
+	base_field.value = s;
+	url_field.value = s;
+}
 function set_error(s) {
 	error_div.classList.toggle('hide', !s);
 	if (s) error_div.innerHTML = `❌️ ${s}`;
@@ -209,22 +213,20 @@ function update() {
 		set_error(err.message);
 	}
 }
-
 function parse() {
 	try {
 		let output = ens_normalize(output_field.value.trim());
 		if (!output) {
-			name_field.value = '';
-			base_field.value = '';
-			url_field.value = '';
+			set_components('');
 			set_error();
 			return;
 		}
 		let v = output.split('.');
-		let i = v.length - 2;
+		let i = v.length - 2; // assume 2LD basename
 		let url;
 		while (i > 0) {
 			try {
+				// find the next subdomain that decodes to base32
 				url = new URL(new TextDecoder().decode(Base32.decode(v[--i])));
 				break;
 			} catch (err) {
@@ -236,9 +238,7 @@ function parse() {
 		url_field.value = url;
 		set_error();
 	} catch (err) {
-		name_field.value = ' ';
-		base_field.value = ' ';
-		url_field.value = ' ';
+		set_components(' '); // hide placeholder
 		set_error(err.message);
 	}
 }
