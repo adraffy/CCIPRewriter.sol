@@ -189,7 +189,8 @@ resolve0_btn.addEventListener('click', () => {
 function set_error(s) {
 	error_div.classList.toggle('hide', !s);
 	if (s) error_div.innerHTML = `❌️ ${s}`;
-	resolve_btn.disabled = !!s;
+	resolve_btn.disabled = !output_field.value.trim().length;
+	resolve0_btn.disabled = !name_field.value.trim().length;
 }
 
 function encode(s) {
