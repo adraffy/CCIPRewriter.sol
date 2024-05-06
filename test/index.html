@@ -77,9 +77,6 @@ input.big {
 	padding: 8px;
 	font-size: 100%;
 }
-#resolve0_btn {
-	margin-left: auto;
-}
 #resolve_btn {
 	font-weight: bold;
 }
@@ -136,6 +133,7 @@ footer {
 </div>
 <div id="actions">
 	<div id="error" class="hide">Chonk</div>
+	<button id="copy_url_btn" style="margin-left: auto">🔗️ Copy Link</button>
 	<button id="resolve0_btn">Resolve Original</button>
 	<button id="resolve_btn">Resolve</button>
 </div>
@@ -153,6 +151,7 @@ const url_field = document.querySelector('#url_field');
 const output_field = document.querySelector('#output_field');
 const resolve_btn = document.querySelector('#resolve_btn');
 const resolve0_btn = document.querySelector('#resolve0_btn');
+const copy_url_btn = document.querySelector('#copy_url_btn');
 const error_div = document.querySelector('#error');
 
 for (let btn of document.querySelectorAll('#examples button[data-rw]')) {
@@ -166,12 +165,6 @@ name_field.addEventListener('input', update);
 base_field.addEventListener('input', update);
 url_field.addEventListener('input', update)
 output_field.addEventListener('input', parse);
-
-if (!output_field.value) {
-	output_field.value = `${name_field.placeholder}.${encode(url_field.placeholder)}.${base_field.placeholder}`;
-}
-parse();
-
 resolve_btn.addEventListener('click', () => {
 	let a = document.createElement('a');
 	a.target = '_blank';
@@ -184,6 +177,29 @@ resolve0_btn.addEventListener('click', () => {
 	a.href = `../../ens-normalize.js/test/resolver.html#${name_field.value}`;	
 	a.click();
 });
+copy_url_btn.addEventListener('click', () => {
+	navigator.clipboard.writeText(`${window.location.href}#${encodeURIComponent(output_field.value)}`);
+});
+window.addEventListener('hashchange', apply_hash);
+
+if (!apply_hash()) {
+	if (!output_field.value) {
+		output_field.value = `${name_field.placeholder}.${encode(url_field.placeholder)}.${base_field.placeholder}`;
+	}
+	parse();
+}
+
+function apply_hash() {
+	let hash = window.location.hash.slice(1);
+	window.history.replaceState(null, null, ' ');
+	if (!hash) return; 
+	try {
+		output_field.value = decodeURIComponent(hash);
+		parse();
+		return true;
+	} catch (err) {
+	}
+}
 
 function set_components(s) {
 	name_field.value = s;
@@ -193,7 +209,7 @@ function set_components(s) {
 function set_error(s) {
 	error_div.classList.toggle('hide', !s);
 	if (s) error_div.innerHTML = `❌️ ${s}`;
-	resolve_btn.disabled = !output_field.value.trim().length;
+	resolve_btn.disabled = copy_url_btn.disabled = !output_field.value.trim().length;	
 	resolve0_btn.disabled = !name_field.value.trim().length;
 }
 

@@ -2,31 +2,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import "forge-std/console2.sol";
+
 // interfaces
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ENS} from "@ensdomains/ens-contracts/contracts/registry/ENS.sol";
 import {IExtendedResolver} from "@ensdomains/ens-contracts/contracts/resolvers/profiles/IExtendedResolver.sol";
 import {IMulticallable} from "@ensdomains/ens-contracts/contracts/resolvers/IMulticallable.sol";
+import {IReverseRegistrar} from "@ensdomains/ens-contracts/contracts/reverseRegistrar/IReverseRegistrar.sol";
 
 // libraries
 import {Base32} from "./Base32.sol";
 import {BytesUtils} from "@ensdomains/ens-contracts/contracts/wrapper/BytesUtils.sol";
 
-// bases
-import {ReverseClaimer} from "@ensdomains/ens-contracts/contracts/reverseRegistrar/ReverseClaimer.sol";
-
 // https://eips.ethereum.org/EIPS/eip-3668
 error OffchainLookup(address from, string[] urls, bytes request, bytes4 callback, bytes carry);
 
-contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
+contract CCIPRewriter is IERC165, IExtendedResolver {
 	using BytesUtils for bytes;
 
 	error Unreachable(bytes name); 
 	error InvalidBase32(bytes name);
-	
-	ENS immutable ens;
-	constructor(ENS _ens) ReverseClaimer(_ens, msg.sender) {
-		ens = _ens;
+
+	bytes32 constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
+
+	ENS immutable _ens;
+	constructor(ENS ens) {
+		_ens = ens;
+		IReverseRegistrar(ens.owner(ADDR_REVERSE_NODE)).claim(msg.sender);
 	}
  
 	function supportsInterface(bytes4 x) external pure returns (bool) {
@@ -35,25 +38,38 @@ contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 			|| x == 0x87f60257; // https://adraffy.github.io/keccak.js/test/demo.html#algo=evm&s=CCIPRewriter&escape=1&encoding=utf8
 	}
 
+	// reflect into the reverse record
+	function _resolveBasename(bytes32, bytes memory data) internal view returns (bytes memory) {
+		bytes32 node = IReverseRegistrar(_ens.owner(ADDR_REVERSE_NODE)).node(address(this));
+		address resolver = _ens.resolver(node);
+		if (resolver != address(0)) {
+			assembly { mstore(add(data, 36), node) }
+			(bool ok, bytes memory v) = resolver.staticcall(data);
+			if (ok) return v;
+		}
+		return new bytes(64);
+	}
+
 	// IExtendedResolver
 	function resolve(bytes memory name, bytes memory data) external view returns (bytes memory v) {
 		unchecked {
-			(, uint256 offset, uint256 size) = _findSelf(name);
-			if (offset == 0 || size == 0) return new bytes(64);
-			offset -= size;
+			// look for [name].{base32}.[basename]
+			(bytes32 node, uint256 offset, uint256 offset2) = _findSelf(name);
+			if (offset == 0 || offset2 == 0) return _resolveBasename(node, data);
 			uint256 name_ptr;
-			assembly { name_ptr := add(add(name, 32), offset) }
-			(bool valid, bytes memory url) = Base32.decode(name_ptr, size);
+			assembly { name_ptr := add(add(name, 32), offset2) }
+			offset2 += 1;
+			(bool valid, bytes memory url) = Base32.decode(name_ptr + 1, offset - offset2);
 			if (!valid) revert InvalidBase32(name);
 			string[] memory urls = new string[](1);
 			urls[0] = string(url);
 			assembly { 
-				mstore8(sub(name_ptr, 1), 0) // terminate
-				mstore(name, offset) // truncate
+				mstore8(name_ptr, 0) // terminate
+				mstore(name, offset2) // truncate
 			}
 			(, address resolver, bool wild, ) = _findResolver(name);
 			if (resolver == address(0)) return new bytes(64);
-			bytes32 node = name.namehash(0);
+			node = name.namehash(0);
 			assembly { mstore(add(data, 36), node) } // rewrite the target
 			bool ok;
 			if (wild) {
@@ -83,13 +99,14 @@ contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 		assembly { return(add(v, 32), mload(v)) }
 	}
 
-	function _findSelf(bytes memory name) internal view returns (bytes32 node, uint256 offset, uint256 size) {
+	function _findSelf(bytes memory name) internal view returns (bytes32 node, uint256 offset, uint256 offset2) {
 		unchecked {
 			while (true) {
 				node = name.namehash(offset);
-				if (ens.resolver(node) == address(this)) break;
-				size = uint256(uint8(name[offset]));
+				if (_ens.resolver(node) == address(this)) break;
+				uint256 size = uint256(uint8(name[offset]));
 				if (size == 0) revert Unreachable(name);
+				offset2 = offset;
 				offset += 1 + size;
 			}
 		}
@@ -98,7 +115,7 @@ contract CCIPRewriter is IERC165, IExtendedResolver, ReverseClaimer {
 		unchecked {
 			while (true) {
 				node = name.namehash(offset);
-				resolver = ens.resolver(node);
+				resolver = _ens.resolver(node);
 				if (resolver != address(0)) break;
 				offset += 1 + uint256(uint8(name[offset]));
 			}

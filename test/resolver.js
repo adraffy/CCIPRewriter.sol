@@ -21,21 +21,28 @@ test('resolver', async T => {
 		}
 	});
 
-	// setup reverse
-	let reverse_registrar = await foundry.deploy({import: '@ensdomains/ens-contracts/contracts/reverseRegistrar/ReverseRegistrar.sol', args: [ens]});
-	let reverse = await ens.$register(root.create('reverse'));
-	await ens.$register(reverse.create('addr'), {owner: reverse_registrar});
-
 	// create a normal resolver
 	const NORMAL = 'Chonker';
+	const NAME = 'ccipr.eth';
 	let normal_resolver = await foundry.deploy({sol: `
 		import {ITextResolver} from "@ensdomains/ens-contracts/contracts/resolvers/profiles/ITextResolver.sol";
-		contract Normal is ITextResolver {
+		import {INameResolver} from "@ensdomains/ens-contracts/contracts/resolvers/profiles/INameResolver.sol";
+		contract Normal is ITextResolver, INameResolver {
 			function text(bytes32 node, string memory key) external pure returns (string memory) {
 				return "${NORMAL}";
 			}
+			function name(bytes32 node) external pure returns (string memory) {
+				return "${NAME}";
+			}
 		}
 	`});
+
+	// setup reverse
+	let reverse_registrar = await foundry.deploy({import: '@ensdomains/ens-contracts/contracts/reverseRegistrar/ReverseRegistrar.sol', args: [ens]});
+	await foundry.confirm(reverse_registrar.setDefaultResolver(normal_resolver));
+
+	let reverse = await ens.$register(root.create('reverse'));
+	let addr_reverse = await ens.$register(reverse.create('addr'), {owner: reverse_registrar});
 
 	// create an offchain resolver that has invalid endpoints
 	let broken_resolver = await foundry.deploy({sol: `
@@ -94,5 +101,11 @@ test('resolver', async T => {
 	// resolve normal with rewriter and confirm unaffected
 	let re_normal = rewrite(normal);
 	await T.test(`normal: ${re_normal.name}`, async () => assert.equal(await Resolver.get(ens, re_normal).then(r => r.text('name')), NORMAL));
+
+	await T.test('resolver: basename', async () => assert.equal(await Resolver.get(ens, rewriter).then(r => r.name()), NAME));
+	await T.test('resolver: abc.basename', async () => assert.equal(await Resolver.get(ens, rewriter.create('abc')).then(r => r.name()), NAME));
+
+	let reverse_node = addr_reverse.create(rewriter_resolver.target.slice(2).toLowerCase());
+	await T.test('resolver: reverse', async () => assert.equal(await Resolver.get(ens, reverse_node).then(r => r.name()), NAME));
 
 });
