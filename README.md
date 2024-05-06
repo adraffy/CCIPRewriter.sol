@@ -4,7 +4,7 @@ Inline CCIP-Read endpoint-rewriter resolver.
 
 * [**CCIPRewriter.sol**](./src/CCIPRewriter.sol)
 	* Deployments: `ccipr.eth`
-		* [`mainnet:0x0B03f37f7671825A90Aa2bdE4C00D0559EcBD12C`](https://etherscan.io/address/0x0B03f37f7671825A90Aa2bdE4C00D0559EcBD12C)
+		* [`mainnet:0x8fEe00274cf019A0055262d2331463Fd78EFC2a3`](https://etherscan.io/address/0x8fEe00274cf019A0055262d2331463Fd78EFC2a3)
 		* [`sepolia:0x4434c3F63aCbd9Fe0a108323d5D172e4f7D736d0`](https://sepolia.etherscan.io/address/0x4434c3F63aCbd9Fe0a108323d5D172e4f7D736d0)
 	* [**Rewriter Tool**](https://adraffy.github.io/CCIPRewriter.sol/test/) ⭐
 
