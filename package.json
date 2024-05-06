@@ -1,7 +1,8 @@
 {
 	"type": "module",
 	"scripts": {
-		"test": "node test/test-all.js"
+		"test": "node test/test-all.js",
+		"build": "forge build --force"
 	},
 	"dependencies": {
 		"@adraffy/blocksmith": "^0.0.18",

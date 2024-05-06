@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "forge-std/console2.sol";
-
 // interfaces
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ENS} from "@ensdomains/ens-contracts/contracts/registry/ENS.sol";
@@ -24,12 +22,15 @@ contract CCIPRewriter is IERC165, IExtendedResolver {
 	error Unreachable(bytes name); 
 	error InvalidBase32(bytes name);
 
-	bytes32 constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
-
 	ENS immutable _ens;
 	constructor(ENS ens) {
 		_ens = ens;
-		IReverseRegistrar(ens.owner(ADDR_REVERSE_NODE)).claim(msg.sender);
+		_rr().claim(msg.sender);
+	}
+
+	function _rr() internal view returns (IReverseRegistrar) {
+		// https://adraffy.github.io/keccak.js/test/demo.html#algo=namehash&s=addr.reverse&escape=1&encoding=utf8
+		return IReverseRegistrar(_ens.owner(0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2));
 	}
  
 	function supportsInterface(bytes4 x) external pure returns (bool) {
@@ -40,7 +41,7 @@ contract CCIPRewriter is IERC165, IExtendedResolver {
 
 	// reflect into the reverse record
 	function _resolveBasename(bytes32, bytes memory data) internal view returns (bytes memory) {
-		bytes32 node = IReverseRegistrar(_ens.owner(ADDR_REVERSE_NODE)).node(address(this));
+		bytes32 node = _rr().node(address(this));
 		address resolver = _ens.resolver(node);
 		if (resolver != address(0)) {
 			assembly { mstore(add(data, 36), node) }
